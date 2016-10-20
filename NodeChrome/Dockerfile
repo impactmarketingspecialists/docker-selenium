@@ -62,7 +62,7 @@ RUN apt-get update -qqy \
     libosmesa6 \
   && ln -s /usr/lib/x86_64-linux-gnu/libOSMesa.so.6 /opt/google/chrome/libosmesa.so \
   && rm -rf /var/lib/apt/lists/*
-=======
+
 RUN chown -R seluser:seluser /opt/selenium
 
 USER seluser
