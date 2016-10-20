@@ -20,14 +20,14 @@ RUN apt-get update -qqy \
     sudo \
     unzip \
     wget \
-  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
   && sed -i 's/securerandom\.source=file:\/dev\/random/securerandom\.source=file:\/dev\/urandom/' ./usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/java.security
 
 #==========
 # Selenium
 #==========
 RUN  mkdir -p /opt/selenium \
-  && wget --no-verbose https://selenium-release.storage.googleapis.com/2.53/selenium-server-standalone-2.53.0.jar -O /opt/selenium/selenium-server-standalone.jar
+  && wget --no-verbose https://selenium-release.storage.googleapis.com/3.0/selenium-server-standalone-3.0.0.jar -O /opt/selenium/selenium-server-standalone.jar
 
 #========================================
 # Add normal user with passwordless sudo
