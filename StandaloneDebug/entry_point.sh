@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# IMPORTANT: Change this file only in directory StandaloneDebug!
 
 source /opt/bin/functions.sh
 
@@ -12,6 +14,8 @@ function shutdown {
 if [ ! -z "$SE_OPTS" ]; then
   echo "appending selenium options: ${SE_OPTS}"
 fi
+
+rm -f /tmp/.X*lock
 
 SERVERNUM=$(get_server_num)
 env | cut -f 1 -d "=" | sort > asroot
