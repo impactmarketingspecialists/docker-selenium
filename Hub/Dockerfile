@@ -2,8 +2,10 @@
 # NOTE: DO *NOT* EDIT THIS FILE.  IT IS GENERATED.
 # PLEASE UPDATE Dockerfile.txt INSTEAD OF THIS FILE
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-FROM selenium/base:3.0.0-dubnium
-MAINTAINER Selenium <selenium-developers@googlegroups.com>
+FROM selenium/base:3.14.0-krypton
+LABEL authors=SeleniumHQ
+
+USER seluser
 
 #========================
 # Selenium Configuration
@@ -11,21 +13,31 @@ MAINTAINER Selenium <selenium-developers@googlegroups.com>
 
 EXPOSE 4444
 
-ENV GRID_NEW_SESSION_WAIT_TIMEOUT -1
-ENV GRID_JETTY_MAX_THREADS -1
-ENV GRID_NODE_POLLING  5000
-ENV GRID_CLEAN_UP_CYCLE 5000
-ENV GRID_TIMEOUT 15000
-ENV GRID_BROWSER_TIMEOUT 15000
+# As integer, maps to "maxSession"
 ENV GRID_MAX_SESSION 5
-ENV GRID_UNREGISTER_IF_STILL_DOWN_AFTER 15000
+# In milliseconds, maps to "newSessionWaitTimeout"
+ENV GRID_NEW_SESSION_WAIT_TIMEOUT -1
+# As a boolean, maps to "throwOnCapabilityNotPresent"
+ENV GRID_THROW_ON_CAPABILITY_NOT_PRESENT true
+# As an integer
+ENV GRID_JETTY_MAX_THREADS -1
+# In milliseconds, maps to "cleanUpCycle"
+ENV GRID_CLEAN_UP_CYCLE 5000
+# In seconds, maps to "browserTimeout"
+ENV GRID_BROWSER_TIMEOUT 60
+# In seconds, maps to "timeout"
+ENV GRID_TIMEOUT 30
+# Debug
+ENV GRID_DEBUG false
+# As integer, maps to "port"
+ENV GRID_HUB_PORT 4444
+# As string, maps to "host"
+ENV GRID_HUB_HOST "0.0.0.0"
+ 
+COPY generate_config \
+    start-selenium-hub.sh \
+    /opt/bin/
 
-COPY generate_config /opt/selenium/generate_config
-COPY entry_point.sh /opt/bin/entry_point.sh
-RUN /opt/selenium/generate_config > /opt/selenium/config.json
-RUN chown -R seluser /opt/selenium
+COPY selenium-hub.conf /etc/supervisor/conf.d/
 
-USER seluser
-
-CMD ["/opt/bin/entry_point.sh"]
-
+RUN /opt/bin/generate_config > /opt/selenium/config.json

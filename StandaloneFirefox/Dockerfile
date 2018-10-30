@@ -2,17 +2,20 @@
 # NOTE: DO *NOT* EDIT THIS FILE.  IT IS GENERATED.
 # PLEASE UPDATE Dockerfile.txt INSTEAD OF THIS FILE
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-FROM selenium/node-firefox:3.0.0-dubnium
-MAINTAINER Selenium <selenium-developers@googlegroups.com>
+FROM selenium/node-firefox:3.14.0-krypton
+LABEL authors=SeleniumHQ
 
-USER root
+USER seluser
 
 #====================================
 # Scripts to run Selenium Standalone
 #====================================
-COPY entry_point.sh /opt/bin/entry_point.sh
-RUN chmod +x /opt/bin/entry_point.sh
+COPY start-selenium-standalone.sh /opt/bin/start-selenium-standalone.sh
 
-USER seluser
+#==============================
+# Supervisor configuration file
+#==============================
+COPY selenium.conf /etc/supervisor/conf.d/
+
 
 EXPOSE 4444

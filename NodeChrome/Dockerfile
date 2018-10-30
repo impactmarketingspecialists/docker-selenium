@@ -2,11 +2,12 @@
 # NOTE: DO *NOT* EDIT THIS FILE.  IT IS GENERATED.
 # PLEASE UPDATE Dockerfile.txt INSTEAD OF THIS FILE
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-FROM selenium/node-base:3.0.0-dubnium
-MAINTAINER Selenium <selenium-developers@googlegroups.com>
+FROM 783811678347.dkr.ecr.us-west-2.amazonaws.com/node-base:3.14.0-krypton-maxSession3
+LABEL authors=SeleniumHQ
 
 USER root
 
+#============================================
 # Google Chrome
 #============================================
 # can specify versions by CHROME_VERSION;
@@ -25,47 +26,32 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
   && rm /etc/apt/sources.list.d/google-chrome.list \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-#==================
+#=================================
+# Chrome Launch Script Wrapper
+#=================================
+COPY wrap_chrome_binary /opt/bin/wrap_chrome_binary
+RUN /opt/bin/wrap_chrome_binary
+
+USER seluser
+
+#============================================
 # Chrome webdriver
-#==================
-ARG CHROME_DRIVER_VERSION=2.25
-RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+#============================================
+# can specify versions by CHROME_DRIVER_VERSION
+# Latest released version will be used by default
+#============================================
+ARG CHROME_DRIVER_VERSION="latest"
+RUN CD_VERSION=$(if [ ${CHROME_DRIVER_VERSION:-latest} = "latest" ]; then echo $(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE); else echo $CHROME_DRIVER_VERSION; fi) \
+  && echo "Using chromedriver version: "$CD_VERSION \
+  && wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CD_VERSION/chromedriver_linux64.zip \
   && rm -rf /opt/selenium/chromedriver \
   && unzip /tmp/chromedriver_linux64.zip -d /opt/selenium \
   && rm /tmp/chromedriver_linux64.zip \
-  && mv /opt/selenium/chromedriver /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION \
-  && chmod 755 /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION \
-  && ln -fs /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION /usr/bin/chromedriver
+  && mv /opt/selenium/chromedriver /opt/selenium/chromedriver-$CD_VERSION \
+  && chmod 755 /opt/selenium/chromedriver-$CD_VERSION \
+  && sudo ln -fs /opt/selenium/chromedriver-$CD_VERSION /usr/bin/chromedriver
 
-#========================
-# Selenium Configuration
-#========================
-ENV NODE_MAX_INSTANCES 3
-ENV NODE_MAX_SESSION 3
-ENV NODE_REGISTER_CYCLE 5000
-COPY generate_config /opt/selenium/generate_config
-RUN chmod +x /opt/selenium/generate_config
+COPY generate_config /opt/bin/generate_config
 
-#=================================
-# Chrome Launch Script Modication
-#=================================
-COPY chrome_launcher.sh /opt/google/chrome/google-chrome
-RUN chmod +x /opt/google/chrome/google-chrome
-
-#===============
-# OSMESA
-# Off-screen interface is used for rendering into the user-alloctaed memory
-#===============
-
-RUN apt-get update -qqy \
-  && apt-get -qqy --no-install-recommends install \
-    libosmesa6 \
-  && ln -s /usr/lib/x86_64-linux-gnu/libOSMesa.so.6 /opt/google/chrome/libosmesa.so \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN chown -R seluser:seluser /opt/selenium
-
-USER seluser
-# Following line fixes
-# https://github.com/SeleniumHQ/docker-selenium/issues/87
-ENV DBUS_SESSION_BUS_ADDRESS=/dev/null
+# Generating a default config during build time
+RUN /opt/bin/generate_config > /opt/selenium/config.json

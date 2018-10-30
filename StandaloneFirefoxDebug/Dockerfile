@@ -2,58 +2,21 @@
 # NOTE: DO *NOT* EDIT THIS FILE.  IT IS GENERATED.
 # PLEASE UPDATE Dockerfile.txt INSTEAD OF THIS FILE
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-FROM selenium/standalone-firefox:3.0.0-dubnium
-MAINTAINER Selenium <selenium-developers@googlegroups.com>
+FROM selenium/node-firefox-debug:3.14.0-krypton
+LABEL authors=SeleniumHQ
 
-USER root
+USER seluser
 
-#=====
-# VNC
-#=====
-RUN apt-get update -qqy \
-  && apt-get -qqy install \
-  x11vnc \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
-  && mkdir -p /root/.vnc \
-  && x11vnc -storepasswd secret ~/.vnc/passwd
-
-#=================
-# Locale settings
-#=================
-ENV LANGUAGE en_US.UTF-8
-ENV LANG en_US.UTF-8
-RUN locale-gen en_US.UTF-8 \
-  && dpkg-reconfigure --frontend noninteractive locales \
-  && apt-get update -qqy \
-  && apt-get -qqy --no-install-recommends install \
-    language-pack-en \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
-#=======
-# Fonts
-#=======
-RUN apt-get update -qqy \
-  && apt-get -qqy --no-install-recommends install \
-    fonts-ipafont-gothic \
-    xfonts-100dpi \
-    xfonts-75dpi \
-    xfonts-cyrillic \
-    xfonts-scalable \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
-#=========
-# fluxbox
-# A fast, lightweight and responsive window manager
-#=========
-RUN apt-get update -qqy \
-  && apt-get -qqy install \
-    fluxbox \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+#====================================
+# Scripts to run Selenium Standalone
+#====================================
+COPY start-selenium-standalone.sh /opt/bin/start-selenium-standalone.sh
 
 #==============================
-# Scripts to run Selenium Node
+# Supervisor configuration file
 #==============================
-COPY entry_point.sh /opt/bin/entry_point.sh
-RUN chmod +x /opt/bin/entry_point.sh
+COPY selenium.conf /etc/supervisor/conf.d/
 
+
+EXPOSE 4444
 EXPOSE 5900
