@@ -11,7 +11,7 @@ USER root
 # Xvfb
 #==============
 RUN apt-get update -qqy \
-  && apt-get -qqy install \
+  && apt-get -qqy install --fix-missing \
     xvfb \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
